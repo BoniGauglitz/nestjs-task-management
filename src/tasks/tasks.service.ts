@@ -21,10 +21,7 @@ export class TasksService {
     }
     if (search) {
       tasks = tasks.filter((task) => {
-        if (task.title.includes(search) || task.description.includes(search)) {
-          return true;
-        }
-        return false;
+        return task.title.includes(search) || task.description.includes(search);
       });
     }
 
@@ -33,25 +30,27 @@ export class TasksService {
 
   getTaskById(id: string): Task {
     const found = this.tasks.find((task) => task.id === id);
-    if (found != null) return found;
-
-    throw new NotFoundException(`Task with ID "${id}" not found`);
+    if (!found) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+    return found;
   }
 
   createTask(CreateTaskDto: CreateTaskDto): Task {
-    const { title, description, status } = CreateTaskDto;
+    const { title, description } = CreateTaskDto;
     const task: Task = {
       id: uuid(),
       title,
       description,
-      status: status,
+      status: TaskStatus.OPEN,
     };
     this.tasks.push(task);
     return task;
   }
 
   deleteTask(id: string): void {
-    this.tasks = this.tasks.filter((task) => task.id !== id);
+    const found = this.getTaskById(id);
+    this.tasks = this.tasks.filter((task) => task.id !== found.id);
   }
 
   updateTaskStatus(id: string, status: TaskStatus): Task {
